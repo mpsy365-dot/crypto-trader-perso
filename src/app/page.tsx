@@ -59,6 +59,11 @@ export default function Home() {
       <footer className="mt-12 text-center text-gray-500 text-sm">
         <p>© 2026 - Développé par <span className="text-blue-400 font-bold">TAREK BOUSSEBCI</span></p>
       </footer>
+
+      <footer className="mt-12 text-center text-gray-500 text-sm pb-8">
+        <p>© 2026 - Développé par <span className="text-blue-400 font-bold">TAREK BOUSSEBCI</span> 🔐</p>
+      </footer>
+
     </main>
   );
 }
