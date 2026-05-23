@@ -25,7 +25,8 @@ export function TradeExecutor({
   rrRatio 
 }: TradeExecutorProps) {
   const { address } = useAccount();
-  const [mode, setMode] = useState<'demo' | 'live'>('demo'); // ← AJOUTÉ : useState pour mode
+  // ✅ Correction : 'real' au lieu de 'live'
+  const [mode, setMode] = useState<'demo' | 'real'>('demo');
   const [status, setStatus] = useState<'idle' | 'preparing' | 'signing' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -41,6 +42,7 @@ export function TradeExecutor({
       position: amountToInvest,
       ratio: rrRatio,
       status: success ? 'success' : 'failed',
+      // ✅ mode est maintenant compatible avec 'demo' | 'real'
       mode: mode
     });
   };
@@ -101,10 +103,11 @@ export function TradeExecutor({
         >
           🎮 Démo
         </button>
+        {/* ✅ Correction : setMode('real') au lieu de 'live' */}
         <button
-          onClick={() => setMode('live')}
+          onClick={() => setMode('real')}
           className={`flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all ${
-            mode === 'live' 
+            mode === 'real' 
               ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
               : 'text-gray-400 hover:text-white'
           }`}
