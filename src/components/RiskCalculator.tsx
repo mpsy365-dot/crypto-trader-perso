@@ -65,7 +65,7 @@ export function RiskCalculator({ onResult }: RiskCalculatorProps) {
           type="number"
           value={virtualCapital}
           onChange={(e) => setVirtualCapital(Number(e.target.value))}
-          className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-white focus:border-blue-500 outline-none"
+          className="input-premium"
         />
       </div>
 
@@ -76,7 +76,7 @@ export function RiskCalculator({ onResult }: RiskCalculatorProps) {
             type="number"
             value={entryPrice}
             onChange={(e) => setEntryPrice(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white"
+            className="input-premium"
           />
         </div>
         <div>
@@ -85,7 +85,7 @@ export function RiskCalculator({ onResult }: RiskCalculatorProps) {
             type="number"
             value={slPrice}
             onChange={(e) => setSlPrice(e.target.value)}
-            className="w-full bg-gray-800 border border-red-900/50 rounded p-2 text-sm text-white"
+            className="input-premium"
           />
         </div>
       </div>
@@ -97,7 +97,7 @@ export function RiskCalculator({ onResult }: RiskCalculatorProps) {
             type="number"
             value={tpPrice}
             onChange={(e) => setTpPrice(e.target.value)}
-            className="w-full bg-gray-800 border border-green-900/50 rounded p-2 text-sm text-white"
+            className="input-premium"
           />
         </div>
         <div>
@@ -106,7 +106,7 @@ export function RiskCalculator({ onResult }: RiskCalculatorProps) {
             type="number"
             value={riskPercent}
             onChange={(e) => setRiskPercent(Number(e.target.value))}
-            className="w-full bg-gray-800 border border-gray-700 rounded p-2 text-sm text-white"
+            className="input-premium"
           />
         </div>
       </div>

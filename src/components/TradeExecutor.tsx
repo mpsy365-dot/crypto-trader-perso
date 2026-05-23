@@ -67,11 +67,6 @@ export function TradeExecutor({
                      status === 'error' ? '❌ ÉCHEC' :
                      '🎮 EXÉCUTER (DÉMO)';
   
-  const buttonStyle = status === 'preparing' ? 'bg-gray-600 cursor-not-allowed' :
-                      status === 'signing' ? 'bg-yellow-600' :
-                      status === 'success' ? 'bg-green-800' :
-                      status === 'error' ? 'bg-red-600' :
-                      'bg-blue-600 hover:bg-blue-700';
 
   if (!address) return null;
 
@@ -82,12 +77,19 @@ export function TradeExecutor({
       </div>
 
       <button
-        onClick={handleDemoTrade}
-        disabled={status !== 'idle' && status !== 'success' && status !== 'error'}
-        className={`w-full py-4 rounded-lg font-bold text-lg text-white transition ${buttonStyle}`}
-      >
-        {buttonText}
-      </button>
+  onClick={() => setMode('demo')}
+  className={`btn-secondary w-full ${mode === 'demo' ? 'border-amber-400/50' : ''}`}
+>
+  🎮 Mode Démo
+</button>
+
+<button
+  onClick={handleDemoTrade}
+  disabled={status !== 'idle' && status !== 'success' && status !== 'error'}
+  className={`btn-green w-full text-lg disabled:opacity-50 disabled:cursor-not-allowed`}
+>
+  {buttonText}
+</button>
 
       {status === 'error' && (
         <div className="mt-3 p-3 bg-red-900/50 border border-red-700 rounded text-red-200 text-sm">
