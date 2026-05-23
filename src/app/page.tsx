@@ -50,7 +50,14 @@ export default function Home() {
       
       <RiskCalculator onResult={handleRiskResult} />
       
-      <TradeExecutor {...tradeParams} />
+      <TradeExecutor 
+  amountToInvest={tradeParams.positionSize}
+  entryPrice={tradeParams.entryPrice}
+  slPrice={tradeParams.slPrice}
+  tpPrice={tradeParams.tpPrice}
+  riskAmount={tradeParams.riskAmount}
+  rrRatio={tradeParams.rrRatio}
+/>
       <TradeJournal />
       
       <PriceChart onPriceUpdate={setCurrentPrice} />
