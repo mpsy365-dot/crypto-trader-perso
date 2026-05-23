@@ -133,7 +133,14 @@ export default function Home() {
             </div>
             
             <div className="card-glass">
-              <TradeExecutor {...tradeParams} />
+              <TradeExecutor 
+                amountToInvest={tradeParams.positionSize}
+                entryPrice={tradeParams.entryPrice}
+                slPrice={tradeParams.slPrice}
+                tpPrice={tradeParams.tpPrice}
+                riskAmount={tradeParams.riskAmount}
+                rrRatio={tradeParams.rrRatio}
+              />
             </div>
             
             <div className="card-glass">
