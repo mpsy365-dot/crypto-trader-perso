@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { saveTrade } from '@/lib/journal';
+import { Zap, Shield, CheckCircle } from 'lucide-react';
 
 const ESTIMATED_BNB_PRICE = 600;
 
@@ -24,6 +25,7 @@ export function TradeExecutor({
   rrRatio 
 }: TradeExecutorProps) {
   const { address } = useAccount();
+  const [mode, setMode] = useState<'demo' | 'live'>('demo'); // ← AJOUTÉ : useState pour mode
   const [status, setStatus] = useState<'idle' | 'preparing' | 'signing' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -39,7 +41,7 @@ export function TradeExecutor({
       position: amountToInvest,
       ratio: rrRatio,
       status: success ? 'success' : 'failed',
-      mode: 'demo'
+      mode: mode
     });
   };
 
@@ -61,45 +63,112 @@ export function TradeExecutor({
     }
   };
 
-  const buttonText = status === 'preparing' ? '⏳ Préparation...' :
-                     status === 'signing' ? '✍️ Signature simulée...' :
-                     status === 'success' ? '✅ TRADE EXÉCUTÉ' :
-                     status === 'error' ? '❌ ÉCHEC' :
-                     '🎮 EXÉCUTER (DÉMO)';
-  
+  const getButtonText = () => {
+    if (status === 'preparing') return '⏳ Préparation...';
+    if (status === 'signing') return '✍️ Signature...';
+    if (status === 'success') return '✅ TRADE EXÉCUTÉ';
+    if (status === 'error') return '❌ ÉCHEC';
+    return mode === 'demo' ? '🎮 EXÉCUTER (DÉMO)' : '💰 EXÉCUTER (RÉEL)';
+  };
 
-  if (!address) return null;
+  const getButtonClass = () => {
+    if (status === 'preparing' || status === 'signing') return 'btn-secondary w-full text-lg opacity-75 cursor-not-allowed';
+    if (status === 'success') return 'btn-green w-full text-lg';
+    if (status === 'error') return 'btn-danger w-full text-lg';
+    return mode === 'demo' ? 'btn-secondary w-full text-lg' : 'btn-green w-full text-lg';
+  };
+
+  if (!address) {
+    return (
+      <div className="text-center py-8 text-gray-400">
+        <Shield className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+        <p>Connecte ton wallet pour exécuter des trades</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="mt-8 w-full max-w-md">
-      <div className="p-3 rounded-lg mb-4 text-sm bg-blue-900/30 border border-blue-700 text-blue-300">
-        🧪 Mode Démo - Simulation sans argent réel
+    <div className="space-y-4">
+      {/* Mode Selector */}
+      <div className="flex gap-2 p-1 bg-white/5 rounded-xl">
+        <button
+          onClick={() => setMode('demo')}
+          className={`flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+            mode === 'demo' 
+              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' 
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          🎮 Démo
+        </button>
+        <button
+          onClick={() => setMode('live')}
+          className={`flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all ${
+            mode === 'live' 
+              ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+              : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          💰 Réel
+        </button>
       </div>
 
+      {/* Info Banner */}
+      <div className={`p-3 rounded-lg text-sm flex items-start gap-2 ${
+        mode === 'demo' 
+          ? 'bg-blue-500/10 border border-blue-500/20 text-blue-300' 
+          : 'bg-green-500/10 border border-green-500/20 text-green-300'
+      }`}>
+        <Zap className="w-4 h-4 mt-0.5 flex-shrink-0" />
+        <p>
+          {mode === 'demo' 
+            ? 'Simulation sans risque - Parfait pour tester ta stratégie' 
+            : 'Trade réel avec ton BNB - Frais de gaz appliqués'}
+        </p>
+      </div>
+
+      {/* Execute Button */}
       <button
-  onClick={() => setMode('demo')}
-  className={`btn-secondary w-full ${mode === 'demo' ? 'border-amber-400/50' : ''}`}
->
-  🎮 Mode Démo
-</button>
+        onClick={mode === 'demo' ? handleDemoTrade : undefined}
+        disabled={status !== 'idle' && status !== 'success' && status !== 'error'}
+        className={getButtonClass()}
+      >
+        {getButtonText()}
+      </button>
 
-<button
-  onClick={handleDemoTrade}
-  disabled={status !== 'idle' && status !== 'success' && status !== 'error'}
-  className={`btn-green w-full text-lg disabled:opacity-50 disabled:cursor-not-allowed`}
->
-  {buttonText}
-</button>
-
+      {/* Status Messages */}
       {status === 'error' && (
-        <div className="mt-3 p-3 bg-red-900/50 border border-red-700 rounded text-red-200 text-sm">
-          {errorMsg}
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-300 text-sm">
+          {errorMsg || 'Une erreur est survenue'}
         </div>
       )}
       
       {status === 'success' && (
-        <div className="mt-3 p-3 bg-green-900/50 border border-green-700 rounded text-green-200 text-sm text-center">
-          🎉 Simulation réussie ! Le système fonctionne.
+        <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-300 text-sm flex items-center gap-2">
+          <CheckCircle className="w-4 h-4" />
+          {mode === 'demo' ? 'Simulation réussie ! 🎉' : 'Transaction validée sur la blockchain ! ✅'}
+        </div>
+      )}
+
+      {/* Trade Summary */}
+      {amountToInvest > 0 && (
+        <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-2 gap-3 text-sm">
+          <div>
+            <p className="text-gray-500 text-xs">Position</p>
+            <p className="font-mono text-white">${amountToInvest.toFixed(2)}</p>
+          </div>
+          <div>
+            <p className="text-gray-500 text-xs">Risque</p>
+            <p className="font-mono text-red-400">${riskAmount.toFixed(2)}</p>
+          </div>
+          <div>
+            <p className="text-gray-500 text-xs">R:R Ratio</p>
+            <p className="font-mono text-amber-400">{rrRatio.toFixed(2)}x</p>
+          </div>
+          <div>
+            <p className="text-gray-500 text-xs">Gain Potentiel</p>
+            <p className="font-mono text-green-400">${((tpPrice - entryPrice) * (amountToInvest / entryPrice)).toFixed(2)}</p>
+          </div>
         </div>
       )}
     </div>
