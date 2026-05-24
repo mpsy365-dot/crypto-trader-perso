@@ -25,7 +25,6 @@ export function TradeExecutor({
   rrRatio 
 }: TradeExecutorProps) {
   const { address } = useAccount();
-  // ✅ Correction : 'real' au lieu de 'live'
   const [mode, setMode] = useState<'demo' | 'real'>('demo');
   const [status, setStatus] = useState<'idle' | 'preparing' | 'signing' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
@@ -42,7 +41,6 @@ export function TradeExecutor({
       position: amountToInvest,
       ratio: rrRatio,
       status: success ? 'success' : 'failed',
-      // ✅ mode est maintenant compatible avec 'demo' | 'real'
       mode: mode
     });
   };
@@ -74,10 +72,21 @@ export function TradeExecutor({
   };
 
   const getButtonClass = () => {
-    if (status === 'preparing' || status === 'signing') return 'btn-secondary w-full text-lg opacity-75 cursor-not-allowed';
-    if (status === 'success') return 'btn-green w-full text-lg';
-    if (status === 'error') return 'btn-danger w-full text-lg';
-    return mode === 'demo' ? 'btn-secondary w-full text-lg' : 'btn-green w-full text-lg';
+    const base = "w-full text-lg font-bold py-4 px-6 rounded-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed";
+    
+    if (status === 'preparing' || status === 'signing') {
+      return `${base} bg-gray-700 text-gray-400 cursor-wait`;
+    }
+    if (status === 'success') {
+      return `${base} bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white shadow-lg shadow-green-500/25 hover:shadow-green-500/40 hover:-translate-y-0.5`;
+    }
+    if (status === 'error') {
+      return `${base} bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-lg shadow-red-500/25 hover:shadow-red-500/40 hover:-translate-y-0.5`;
+    }
+    if (mode === 'demo') {
+      return `${base} bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20`;
+    }
+    return `${base} bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 hover:-translate-y-0.5`;
   };
 
   if (!address) {
@@ -103,7 +112,6 @@ export function TradeExecutor({
         >
           🎮 Démo
         </button>
-        {/* ✅ Correction : setMode('real') au lieu de 'live' */}
         <button
           onClick={() => setMode('real')}
           className={`flex-1 py-2.5 rounded-lg font-semibold text-sm transition-all ${

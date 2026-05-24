@@ -1,7 +1,11 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useState, useCallback } from 'react';
-import { ConnectButton } from '@/components/ConnectButton';
+const ConnectButton = dynamic(() => import('@/components/ConnectButton'), { 
+  ssr: false,
+  loading: () => <div className="w-24 h-10 bg-gray-800 rounded-lg animate-pulse" />
+});
 import { BalanceDisplay } from '@/components/BalanceDisplay';
 import { RiskCalculator } from '@/components/RiskCalculator';
 import { TradeExecutor } from '@/components/TradeExecutor';
@@ -43,30 +47,20 @@ export default function Home() {
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+          {/* Logo et Titre */}
           <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-br from-amber-400 to-amber-700 p-2.5 rounded-xl shadow-lg shadow-amber-500/20">
-              <TrendingUp className="text-black w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-                TRADER <span className="text-amber-400">PRO</span>
-              </h1>
-              <p className="text-xs text-gray-500 font-medium tracking-wide">by Tarek Boussebci</p>
-            </div>
+             {/* Tu peux remettre ton logo ici si tu veux */}
+             <h1 className="text-xl font-bold text-white">TRADER PRO</h1>
           </div>
-          <div className="flex items-center gap-6">
-            <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-bold uppercase tracking-wider">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-              </span>
-              Live
-            </div>
-            <ConnectButton />
+          
+          {/* Wallet Status (ConnectButton commenté temporairement) */}
+          <div className="text-sm text-gray-500 font-mono border border-white/10 px-3 py-1 rounded-full bg-white/5">
+            Wallet: Déconnecté
           </div>
         </div>
       </header>
 
+      {/* CONTENU PRINCIPAL */}
       <div className="max-w-7xl mx-auto px-6 mt-8 space-y-8">
         
         {/* STATS CARDS */}
@@ -77,7 +71,7 @@ export default function Home() {
             { label: "Trades Gagnés", value: "85%", icon: <Activity className="w-5 h-5 text-blue-400" />, change: "+2", color: "text-blue-400" },
             { label: "Risque Max", value: "1.2%", icon: <AlertTriangle className="w-5 h-5 text-red-400" />, change: "Safe", color: "text-red-400" },
           ].map((stat, i) => (
-            <div key={i} className="card-glass group hover:bg-white/5">
+            <div key={i} className="bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-300 shadow-xl">
               <div className="flex justify-between items-start mb-3">
                 <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">{stat.label}</span>
                 <div className="p-2 rounded-lg bg-white/5 group-hover:bg-white/10 transition">{stat.icon}</div>
@@ -120,7 +114,7 @@ export default function Home() {
             {activeTab === 'chart' && <PriceChart />}
             {activeTab === 'ai' && <AIOpportunityScanner onTradeApproved={handleAITradeApproval} />}
             {activeTab === 'journal' && (
-              <div className="card-glass">
+              <div className="bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-300 shadow-xl">
                 <TradeJournal />
               </div>
             )}
@@ -128,11 +122,11 @@ export default function Home() {
 
           {/* RIGHT COLUMN (Controls) */}
           <div className="space-y-6">
-            <div className="card-glass">
+            <div className="bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-300 shadow-xl">
               <RiskCalculator onResult={handleRiskResult} />
             </div>
             
-            <div className="card-glass">
+            <div className="bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-300 shadow-xl">
               <TradeExecutor 
                 amountToInvest={tradeParams.positionSize}
                 entryPrice={tradeParams.entryPrice}
@@ -143,7 +137,7 @@ export default function Home() {
               />
             </div>
             
-            <div className="card-glass">
+            <div className="bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-300 shadow-xl">
               <BalanceDisplay />
             </div>
           </div>

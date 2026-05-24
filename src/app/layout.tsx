@@ -1,10 +1,10 @@
-import type { Metadata } from 'next';
-import { Providers } from './providers';
 import './globals.css';
+import type { Metadata } from "next";
+import { Providers } from "@/app/providers";
 
 export const metadata: Metadata = {
-  title: 'Trader Perso',
-  description: 'Application de trading crypto automatisée',
+  title: "Trader Pro",
+  description: "Développé par Tarek Boussebci",
 };
 
 export default function RootLayout({
@@ -13,9 +13,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr">
-      <body>
-        <Providers>{children}</Providers>
+    <html lang="fr" suppressHydrationWarning>
+      <body className="bg-[#050505] text-white font-sans antialiased" suppressHydrationWarning>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

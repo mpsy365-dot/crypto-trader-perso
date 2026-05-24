@@ -65,7 +65,7 @@ export function RiskCalculator({ onResult }: RiskCalculatorProps) {
           type="number"
           value={virtualCapital}
           onChange={(e) => setVirtualCapital(Number(e.target.value))}
-          className="input-premium"
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all"
         />
       </div>
 
@@ -76,7 +76,7 @@ export function RiskCalculator({ onResult }: RiskCalculatorProps) {
             type="number"
             value={entryPrice}
             onChange={(e) => setEntryPrice(e.target.value)}
-            className="input-premium"
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all"
           />
         </div>
         <div>
@@ -85,7 +85,7 @@ export function RiskCalculator({ onResult }: RiskCalculatorProps) {
             type="number"
             value={slPrice}
             onChange={(e) => setSlPrice(e.target.value)}
-            className="input-premium"
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all"
           />
         </div>
       </div>
@@ -97,7 +97,7 @@ export function RiskCalculator({ onResult }: RiskCalculatorProps) {
             type="number"
             value={tpPrice}
             onChange={(e) => setTpPrice(e.target.value)}
-            className="input-premium"
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all"
           />
         </div>
         <div>
@@ -106,7 +106,7 @@ export function RiskCalculator({ onResult }: RiskCalculatorProps) {
             type="number"
             value={riskPercent}
             onChange={(e) => setRiskPercent(Number(e.target.value))}
-            className="input-premium"
+            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 transition-all"
           />
         </div>
       </div>
