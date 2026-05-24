@@ -1,19 +1,16 @@
 import { createConfig, http } from 'wagmi';
-import { bsc, polygon, bscTestnet, polygonAmoy } from 'wagmi/chains';
-import { walletConnect } from 'wagmi/connectors';
+import { bsc } from 'wagmi/chains';
+import { injected } from 'wagmi/connectors';
 
+// Configuration de Wagmi pour Next.js
 export const config = createConfig({
-  chains: [bsc, polygon, bscTestnet, polygonAmoy],
-  transports: {
-    [bsc.id]: http(),
-    [polygon.id]: http(),
-    [bscTestnet.id]: http(),
-    [polygonAmoy.id]: http(),
-  },
+  chains: [bsc], // Binance Smart Chain
   connectors: [
-    walletConnect({
-      projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID!,
-      showQrModal: false,
+    injected({
+      target: 'metaMask', // Détecte MetaMask, Trust Wallet, Binance Wallet, etc.
     }),
   ],
+  transports: {
+    [bsc.id]: http(),
+  },
 });

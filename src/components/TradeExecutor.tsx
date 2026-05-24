@@ -1,11 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
-import { saveTrade } from '@/lib/journal';
 import { Zap, Shield, CheckCircle } from 'lucide-react';
-
-const ESTIMATED_BNB_PRICE = 600;
+import { generateUniqueId } from '@/lib/uid';
 
 interface TradeExecutorProps {
   amountToInvest: number;
@@ -28,47 +26,64 @@ export function TradeExecutor({
   const [mode, setMode] = useState<'demo' | 'real'>('demo');
   const [status, setStatus] = useState<'idle' | 'preparing' | 'signing' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
+  const [mounted, setMounted] = useState(false);
+
+  // Éviter l'hydratation mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const logTrade = (success: boolean) => {
-    saveTrade({
-      id: Date.now().toString(),
-      date: new Date().toISOString(),
-      pair: 'BNB/USDT',
-      entry: entryPrice,
-      sl: slPrice,
-      tp: tpPrice,
-      risk: riskAmount,
-      position: amountToInvest,
-      ratio: rrRatio,
-      status: success ? 'success' : 'failed',
-      mode: mode
-    });
+  const profit = success 
+    ? (tpPrice - entryPrice) * (amountToInvest / entryPrice) 
+    : -riskAmount;
+  
+  const newTrade = {
+    id: generateUniqueId('trade'), // ← ID unique garanti ✅
+    date: new Date().toISOString(),
+    pair: 'BNB/USDT',
+    type: mode === 'demo' ? 'BUY' : 'SELL',
+    entry: entryPrice,
+    entryPrice: entryPrice,
+    exit: tpPrice,
+    sl: slPrice,
+    tp: tpPrice,
+    position: amountToInvest,
+    risk: riskAmount,
+    profit: profit,
+    status: success ? 'success' as const : 'failed' as const,
+    mode: mode
   };
+
+  const existing = JSON.parse(localStorage.getItem('traderPro_trades') || '[]');
+  localStorage.setItem('traderPro_trades', JSON.stringify([...existing, newTrade]));
+};
 
   const handleDemoTrade = async () => {
-    if (!address || amountToInvest <= 0) return;
-    try {
-      setStatus('preparing');
-      setErrorMsg('');
-      await new Promise(r => setTimeout(r, 1000));
-      setStatus('signing');
-      await new Promise(r => setTimeout(r, 1500));
-      setStatus('success');
-      logTrade(true);
-      setTimeout(() => setStatus('idle'), 3000);
-    } catch (err: any) {
-      setStatus('error');
-      setErrorMsg(err.message);
-      logTrade(false);
-    }
-  };
+  if (!address || amountToInvest <= 0) return;
+  try {
+    setStatus('preparing');
+    setErrorMsg('');
+    await new Promise(r => setTimeout(r, 1000));
+    setStatus('signing');
+    await new Promise(r => setTimeout(r, 1500));
+    setStatus('success');
+    logTrade(true);
+    // ✅ SUPPRIME CETTE LIGNE 👇 (elle causait l'arrêt visuel)
+    // setTimeout(() => setStatus('idle'), 3000);
+  } catch (err: any) {
+    setStatus('error');
+    setErrorMsg(err.message);
+    logTrade(false);
+  }
+};
 
   const getButtonText = () => {
-    if (status === 'preparing') return '⏳ Préparation...';
+    if (status === 'preparing') return ' Préparation...';
     if (status === 'signing') return '✍️ Signature...';
     if (status === 'success') return '✅ TRADE EXÉCUTÉ';
     if (status === 'error') return '❌ ÉCHEC';
-    return mode === 'demo' ? '🎮 EXÉCUTER (DÉMO)' : '💰 EXÉCUTER (RÉEL)';
+    return mode === 'demo' ? '🎮 EXÉCUTER (DÉMO)' : ' EXÉCUTER (RÉEL)';
   };
 
   const getButtonClass = () => {
@@ -83,15 +98,23 @@ export function TradeExecutor({
     if (status === 'error') {
       return `${base} bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-lg shadow-red-500/25 hover:shadow-red-500/40 hover:-translate-y-0.5`;
     }
-    if (mode === 'demo') {
-      return `${base} bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20`;
-    }
-    return `${base} bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 hover:-translate-y-0.5`;
+    return mode === 'demo' 
+      ? `${base} bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20` 
+      : `${base} bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 hover:-translate-y-0.5`;
   };
+
+  // Afficher un loader pendant l'hydratation
+  if (!mounted) {
+    return (
+      <div className="text-center py-8 text-gray-400 bg-gray-900/60 rounded-xl border border-white/10">
+        <p>Chargement...</p>
+      </div>
+    );
+  }
 
   if (!address) {
     return (
-      <div className="text-center py-8 text-gray-400">
+      <div className="text-center py-8 text-gray-400 bg-gray-900/60 rounded-xl border border-white/10">
         <Shield className="w-12 h-12 mx-auto mb-3 text-gray-600" />
         <p>Connecte ton wallet pour exécuter des trades</p>
       </div>

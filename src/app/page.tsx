@@ -1,20 +1,36 @@
 'use client';
 
-import dynamic from 'next/dynamic';
+// ============================================================================
+// 1. IMPORTS
+// ============================================================================
 import { useState, useCallback } from 'react';
-const ConnectButton = dynamic(() => import('@/components/ConnectButton'), { 
-  ssr: false,
-  loading: () => <div className="w-24 h-10 bg-gray-800 rounded-lg animate-pulse" />
-});
+import dynamic from 'next/dynamic';
+import { useCryptoBalances } from '@/hooks/useCryptoBalances'; // ← Hook crypto balances
+import { generateUniqueId } from '@/lib/uid'; // ← Générateur d'IDs uniques
+
+// Composants
 import { BalanceDisplay } from '@/components/BalanceDisplay';
 import { RiskCalculator } from '@/components/RiskCalculator';
 import { TradeExecutor } from '@/components/TradeExecutor';
 import { TradeJournal } from '@/components/TradeJournal';
 import { PriceChart } from '@/components/PriceChart';
-import { AIOpportunityScanner } from '@/components/AIOpportunityScanner';
+import AIOpportunityScanner from '@/components/AIOpportunityScanner';
+
+// Composant dynamique (Wallet)
+const ConnectButton = dynamic(() => import('@/components/ConnectButton'), { 
+  ssr: false,
+  loading: () => <div className="w-24 h-10 bg-gray-800 rounded-lg animate-pulse border border-white/10" />
+});
+
+// Icônes
 import { Shield, TrendingUp, Activity, AlertTriangle, BarChart3, Brain, BookOpen } from 'lucide-react';
 
+// ============================================================================
+// 2. COMPOSANT PRINCIPAL
+// ============================================================================
 export default function Home() {
+  
+  // --- États ---
   const [activeTab, setActiveTab] = useState<'chart' | 'ai' | 'journal'>('chart');
   const [tradeParams, setTradeParams] = useState({
     positionSize: 0,
@@ -25,38 +41,80 @@ export default function Home() {
     rrRatio: 0,
   });
 
+  // --- Hooks (TOUJOURS au niveau supérieur du composant) ---
+  const { balances, hasSufficientBalance, isConnected } = useCryptoBalances();
+
+  // --- Callbacks ---
   const handleRiskResult = useCallback((result: any) => {
     setTradeParams(result);
   }, []);
 
+  // --- Gestion des trades approuvés par l'IA ---
   const handleAITradeApproval = (opportunity: any) => {
+    console.log('🎯 Trade IA reçu:', opportunity.pair);
+
+    // 1. Mettre à jour les paramètres pour le calculateur
     setTradeParams({
       positionSize: 100,
       entryPrice: opportunity.entryPrice,
       slPrice: opportunity.slPrice,
       tpPrice: opportunity.tpPrice,
-      riskAmount: 20,
-      rrRatio: (opportunity.tpPrice - opportunity.entryPrice) / (opportunity.entryPrice - opportunity.slPrice),
+      riskAmount: opportunity.riskAmount,
+      rrRatio: opportunity.rrRatio,
     });
-    setActiveTab('chart'); // Switch to chart to show execution
-    setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
+
+    // 2. Calculer le profit potentiel
+    const profit = opportunity.direction === 'BUY'
+      ? (opportunity.tpPrice - opportunity.entryPrice) * (100 / opportunity.entryPrice)
+      : (opportunity.entryPrice - opportunity.tpPrice) * (100 / opportunity.entryPrice);
+
+    // 3. Créer l'objet trade avec ID unique
+    const newTrade = {
+      id: generateUniqueId('auto'),
+      date: new Date().toISOString(),
+      pair: opportunity.pair,
+      type: opportunity.direction,
+      entry: opportunity.entryPrice,
+      entryPrice: opportunity.entryPrice,
+      sl: opportunity.slPrice,
+      tp: opportunity.tpPrice,
+      position: 100,
+      risk: opportunity.riskAmount,
+      riskPercent: opportunity.riskPercent,
+      rrRatio: opportunity.rrRatio,
+      profit: profit,
+      status: 'success',
+      mode: 'auto',
+      confidence: opportunity.confidence,
+      momentum: opportunity.momentum
+    }; // ← ✅ Accolade fermante ici
+
+    // 4. Sauvegarder dans localStorage
+    try {
+      const existing = JSON.parse(localStorage.getItem('traderPro_trades') || '[]');
+      const filtered = existing.filter((t: any) => t.id !== newTrade.id);
+      localStorage.setItem('traderPro_trades', JSON.stringify([...filtered, newTrade]));
+      console.log('💾 Trade IA sauvegardé avec ID unique:', newTrade.id);
+    } catch (e) {
+      console.error('Erreur sauvegarde:', e);
+    }
+    
+    // ⚠️ IMPORTANT : Pas de setActiveTab ni de window.scrollTo ici !
   };
 
+  // ============================================================================
+  // 3. RENDER (JSX)
+  // ============================================================================
   return (
     <main className="min-h-screen pb-20 bg-[#050505] text-white selection:bg-amber-500/30">
+      
       {/* HEADER */}
       <header className="sticky top-0 z-50 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          {/* Logo et Titre */}
           <div className="flex items-center gap-4">
-             {/* Tu peux remettre ton logo ici si tu veux */}
-             <h1 className="text-xl font-bold text-white">TRADER PRO</h1>
+            <h1 className="text-xl font-bold text-white">TRADER PRO</h1>
           </div>
-          
-          {/* Wallet Status (ConnectButton commenté temporairement) */}
-          <div className="text-sm text-gray-500 font-mono border border-white/10 px-3 py-1 rounded-full bg-white/5">
-            Wallet: Déconnecté
-          </div>
+          <ConnectButton />
         </div>
       </header>
 
@@ -109,10 +167,19 @@ export default function Home() {
         {/* MAIN CONTENT GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* LEFT COLUMN (Charts / AI) */}
+          {/* LEFT COLUMN (Charts / AI / Journal) */}
           <div className="lg:col-span-2 space-y-6">
             {activeTab === 'chart' && <PriceChart />}
-            {activeTab === 'ai' && <AIOpportunityScanner onTradeApproved={handleAITradeApproval} />}
+            
+            {activeTab === 'ai' && (
+              <AIOpportunityScanner 
+                onTradeApproved={handleAITradeApproval}
+                hasSufficientBalance={hasSufficientBalance}
+                balances={balances}
+                isConnected={isConnected}
+              />
+            )}
+            
             {activeTab === 'journal' && (
               <div className="bg-gray-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all duration-300 shadow-xl">
                 <TradeJournal />

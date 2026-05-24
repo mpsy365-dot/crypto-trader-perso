@@ -1,59 +1,73 @@
 'use client';
 
-import { useAccount, useBalance, useReadContract } from 'wagmi';
+import { useState, useEffect } from 'react';
+import { useAccount, useBalance } from 'wagmi';
 import { bsc } from 'wagmi/chains';
-import { erc20Abi, formatEther } from 'viem';
-
-// Adresse USDT sur BSC Mainnet
-const USDT_ADDRESS = '0x55d398326f99059fF775485246999027B3197955';
 
 export function BalanceDisplay() {
   const { address } = useAccount();
+  const [mounted, setMounted] = useState(false);
 
-  // Balance BNB
+  // FIX HYDRATATION
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { data: bnbBalance } = useBalance({
     address,
     chainId: bsc.id,
   });
 
-  // Balance USDT via contrat ERC20
-  const { data: usdtBalance } = useReadContract({
-    address: USDT_ADDRESS as `0x${string}`,
-    abi: erc20Abi,
-    functionName: 'balanceOf',
-    args: [address!],
-    query: {
-      enabled: !!address,
-    },
+  const { data: usdtBalance } = useBalance({
+    address,
+    chainId: bsc.id,
+    token: '0x55d398326f99059fF775485246999027B3197955', // USDT on BSC
   });
 
-  if (!address) return null;
+  if (!mounted) return null;
 
-  // Conversion des balances
-  const bnbFormatted = bnbBalance?.value ? formatEther(bnbBalance.value) : '0';
-  const usdtFormatted = usdtBalance ? formatEther(usdtBalance as bigint) : '0';
+  if (!address) {
+    return (
+      <div className="text-center py-8 text-gray-400 bg-gray-900/60 rounded-xl border border-white/10">
+        <p>Connecte ton wallet pour voir tes soldes</p>
+      </div>
+    );
+  }
 
   return (
     <div className="mt-6 w-full max-w-md">
-      <h2 className="text-lg font-semibold mb-3">Tes Soldes</h2>
+      <h2 className="text-xl font-semibold mb-4 text-white">Tes Soldes</h2>
+      
       <div className="space-y-2">
-        <div className="flex justify-between items-center bg-gray-800 p-3 rounded-lg">
-          <div>
-            <p className="text-gray-400 text-sm">BNB</p>
-            <p className="text-xs text-gray-500">BNB</p>
+        {/* BNB Balance */}
+        <div className="flex justify-between items-center bg-gray-800/50 p-3 rounded-lg border border-white/5">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
+              <span className="text-yellow-400 text-xs font-bold">BNB</span>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white">BNB</p>
+              <p className="text-xs text-gray-400">BSC</p>
+            </div>
           </div>
-          <p className="text-yellow-400 font-mono font-medium">
-            {parseFloat(bnbFormatted).toFixed(4)}
+          <p className="text-sm font-mono text-white">
+            {bnbBalance ? parseFloat(bnbBalance.formatted).toFixed(4) : '0.0000'}
           </p>
         </div>
-        
-        <div className="flex justify-between items-center bg-gray-800 p-3 rounded-lg">
-          <div>
-            <p className="text-gray-400 text-sm">USDT</p>
-            <p className="text-xs text-gray-500">BSC</p>
+
+        {/* USDT Balance */}
+        <div className="flex justify-between items-center bg-gray-800/50 p-3 rounded-lg border border-white/5">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+              <span className="text-green-400 text-xs font-bold">USDT</span>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white">USDT</p>
+              <p className="text-xs text-gray-400">BSC</p>
+            </div>
           </div>
-          <p className="text-green-400 font-mono font-medium">
-            {parseFloat(usdtFormatted).toFixed(2)}
+          <p className="text-sm font-mono text-white">
+            {usdtBalance ? parseFloat(usdtBalance.formatted).toFixed(2) : '0.00'}
           </p>
         </div>
       </div>
