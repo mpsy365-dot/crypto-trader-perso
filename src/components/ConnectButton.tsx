@@ -2,7 +2,7 @@
 
 import { useAccount, useDisconnect, useConnect } from 'wagmi';
 
-export function ConnectButton() {
+export default function ConnectButton() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
